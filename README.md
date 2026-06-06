@@ -114,12 +114,10 @@ The goal was to investigate whether attention improves segmentation quality on v
 ## Validation Performance
 
 | Model                          | Best Validation Dice | Best Validation IoU |
-| ------------------------------ | -------------------: | ------------------: |
-| 3D U-Net                       |           **0.8057** |          **0.7349** |
-| EfficientNet U-Net             |           **0.7991** |          **0.7158** |
-| EfficientNet + Attention U-Net |          **0.7675*** |         **0.6855*** |
-
-* Attention model training was stopped early and additional experimentation is ongoing.
+|--------------------------------|---------------------:|--------------------:|
+| 3D U-Net                       | 0.8057               | 0.7349              |
+| EfficientNet U-Net             | 0.8157               | 0.7427              |
+| EfficientNet + Attention U-Net | **0.8256**           | **0.7575**          |
 
 ---
 
