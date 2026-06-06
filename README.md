@@ -111,9 +111,9 @@ The goal was to investigate whether attention improves segmentation quality on v
 
 ## Training Curves
 
-![Comparing Dice](results/training_curves/dice_comparision.png)
+![Comparing Dice](results/training_curves/dice_comparison.png)
 ![Comparing IOU](results/training_curves/iou_comparision.png)
-![Comparing Loss](results/training_curves/loss_comparision.png)
+
 ---
 
 # Experimental Results
