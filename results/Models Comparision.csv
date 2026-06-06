@@ -1,0 +1,4 @@
+Model,Dice,IoU
+Baseline 3D U-Net,0.8057,0.7349
+EfficientNet U-Net,0.8157,0.7427
+EfficientNet + Attention U-Net,0.8256,0.7575
