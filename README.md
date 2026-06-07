@@ -2,15 +2,15 @@
 
 ## Overview
 
-This project presents a comparative study of deep learning architectures for automated brain tumor segmentation using multi-modal MRI scans from the BraTS 2020 dataset. The objective is to accurately identify and segment tumor regions while analyzing the trade-offs between segmentation performance and computational efficiency.
+This project presents a comparative study of deep learning architectures for automated brain tumor segmentation using the BraTS 2020 dataset. The objective is to accurately identify and segment tumor regions from multi-modal MRI scans while evaluating the trade-offs between segmentation performance, computational efficiency, and architectural complexity.
 
-The project evaluates:
+Three architectures were implemented and evaluated:
 
 * Baseline 3D U-Net
 * EfficientNet-Based 3D U-Net
 * EfficientNet + Attention 3D U-Net
 
-The models were implemented using PyTorch and trained on volumetric MRI data using mixed-precision training and tumor-aware patch sampling.
+The models were developed using PyTorch and trained on volumetric MRI data using mixed-precision training, tumor-aware patch sampling, and hybrid Dice-CrossEntropy optimization.
 
 ---
 
@@ -18,7 +18,7 @@ The models were implemented using PyTorch and trained on volumetric MRI data usi
 
 ### BraTS 2020 Dataset
 
-The Brain Tumor Segmentation (BraTS) 2020 dataset contains multi-modal MRI scans of glioma patients.
+The Brain Tumor Segmentation (BraTS) 2020 dataset contains multi-modal MRI scans of glioma patients along with expert-annotated tumor segmentation masks.
 
 ### MRI Modalities
 
@@ -27,16 +27,16 @@ The Brain Tumor Segmentation (BraTS) 2020 dataset contains multi-modal MRI scans
 * T2
 * FLAIR
 
-### Segmentation Classes
+### Original Segmentation Labels
 
 | Label | Description                         |
 | ----- | ----------------------------------- |
 | 0     | Background                          |
-| 1     | Necrotic / Non-enhancing Tumor Core |
+| 1     | Necrotic / Non-Enhancing Tumor Core |
 | 2     | Peritumoral Edema                   |
 | 4     | Enhancing Tumor                     |
 
-The labels were remapped into four training classes:
+### Remapped Training Classes
 
 | Class ID | Description     |
 | -------- | --------------- |
@@ -47,31 +47,34 @@ The labels were remapped into four training classes:
 
 ---
 
-## Project Pipeline
+# Project Pipeline
 
-### 1. Data Loading
+## 1. Data Loading
 
-* NIfTI (.nii) MRI volumes loaded using NiBabel
-* Four MRI modalities stacked into a 4-channel input tensor
+* NIfTI (.nii.gz) volumes loaded using NiBabel
+* Multi-modal MRI scans stacked into a 4-channel tensor
+* Volumetric processing for 3D segmentation
 
-### 2. Preprocessing
+## 2. Preprocessing
 
 * Per-modality Z-score normalization
 * Non-zero voxel normalization
 * Label remapping
 * Tumor-aware patch sampling
+* Data quality filtering
 
-### 3. Training
+## 3. Training
 
 * Mixed Precision Training (AMP)
 * Adam Optimizer
 * Dice Loss + Cross Entropy Loss
 * Early Stopping
 * Model Checkpointing
+* Validation Monitoring
 
 ---
 
-# Architectures
+# Model Architectures
 
 ## Baseline 3D U-Net
 
@@ -83,39 +86,45 @@ A standard encoder-decoder architecture consisting of:
 * Skip Connections
 * Transposed Convolutions for Upsampling
 
+### Advantages
+
+* Strong segmentation baseline
+* Proven medical imaging architecture
+* Stable training behavior
+
 ---
 
 ## EfficientNet-Based 3D U-Net
 
-The encoder was replaced with EfficientNet-inspired MBConv blocks featuring:
+The encoder was redesigned using EfficientNet-inspired MBConv blocks incorporating:
 
 * Depthwise Separable 3D Convolutions
 * Squeeze-and-Excitation (SE) Blocks
 * Residual Connections
+* Efficient Feature Extraction
 
-Benefits:
+### Advantages
 
 * Reduced computational complexity
 * Faster convergence
 * Improved parameter efficiency
+* Better feature representation
 
 ---
 
-## EfficientNet + Attention U-Net
+## EfficientNet + Attention 3D U-Net
 
-The architecture extends the EfficientNet encoder by incorporating attention mechanisms to enhance feature selection during decoding.
+This architecture extends the EfficientNet encoder by integrating attention mechanisms into the decoder pathway.
 
-The goal was to investigate whether attention improves segmentation quality on volumetric MRI data.
+### Added Components
 
----
+* Attention Gates
+* Feature Refinement Modules
+* Enhanced Skip Connections
 
-## Training Curves
+### Goal
 
-![Comparing Dice](results/training_curves/dice_comparison.png)
-
-![Comparing IOU](results/training_curves/iou_comparison.png)
-
-![Comparing Loss](results/training_curves/loss_comparison.png)
+Improve localization of tumor regions by emphasizing clinically relevant features while suppressing irrelevant background information.
 
 ---
 
@@ -124,31 +133,104 @@ The goal was to investigate whether attention improves segmentation quality on v
 ## Validation Performance
 
 | Model                          | Best Validation Dice | Best Validation IoU |
-|--------------------------------|---------------------:|--------------------:|
-| 3D U-Net                       | 0.8057               | 0.7349              |
+| ------------------------------ | -------------------- | ------------------- |
+| Baseline 3D U-Net              | 0.8057               | 0.7349              |
 | EfficientNet U-Net             | 0.8157               | 0.7427              |
 | EfficientNet + Attention U-Net | **0.8256**           | **0.7575**          |
 
 ---
 
-## Key Findings
+# Training Curves
 
-### Baseline U-Net Achieved Highest Accuracy
+### Dice Score Comparison
 
-The standard 3D U-Net achieved the strongest segmentation performance:
+![Dice Comparison](results/training_curves/dice_comparison.png)
 
-* Dice Score: 0.8057
-* IoU: 0.7349
+### IoU Comparison
 
-### EfficientNet Improved Training Efficiency
+![IoU Comparison](results/training_curves/iou_comparison.png)
 
-The EfficientNet encoder achieved performance comparable to the baseline while converging significantly faster.
+### Loss Comparison
 
-### Attention Increased Complexity
+![Loss Comparison](results/training_curves/loss_comparison.png)
 
-Initial experiments suggest that attention mechanisms increased computational cost without providing a substantial improvement in segmentation performance.
+---
 
-Further investigation is ongoing.
+# Model Performance Comparison
+
+![Model Comparison](results/model_comparison.png)
+
+The comparison demonstrates a consistent improvement in segmentation performance as architectural enhancements are introduced.
+
+---
+
+# Qualitative Results
+
+### Patient 1 Results
+
+![Patient 1 Results](results/patient1_results.png)
+
+### Patient 2 Results
+
+![Patient 2 Results](results/patient2_results.png)
+
+The figures present segmentation results for two representative patients from the validation set. For each patient, the visualization includes:
+
+* MRI Slice (FLAIR modality)
+* Ground Truth Annotation
+* Baseline 3D U-Net Prediction
+* EfficientNet U-Net Prediction
+* EfficientNet + Attention U-Net Prediction
+
+### Observations
+
+* The Baseline U-Net successfully localizes the primary tumor regions but occasionally produces noisy boundaries and small false positive regions.
+* The EfficientNet U-Net generates cleaner segmentation masks with improved localization and better separation of tumor structures from surrounding tissue.
+* The EfficientNet + Attention U-Net produces the most refined tumor boundaries and demonstrates the closest agreement with the ground-truth annotations across both patients.
+* Attention-guided feature refinement helps preserve fine tumor details while reducing background misclassifications.
+
+The qualitative comparison supports the quantitative results, showing progressive improvements in segmentation quality from the Baseline model to the EfficientNet and Attention-enhanced architectures.
+
+---
+
+# Key Findings
+
+## EfficientNet Improved Feature Extraction
+
+Replacing the standard U-Net encoder with EfficientNet-inspired MBConv blocks improved both Dice and IoU scores while maintaining computational efficiency.
+
+### Performance Gain
+
+| Comparison               | Dice Improvement |
+| ------------------------ | ---------------- |
+| Baseline → EfficientNet  | +1.24%           |
+| EfficientNet → Attention | +1.21%           |
+| Baseline → Attention     | +2.47%           |
+
+---
+
+## Attention Mechanisms Achieved the Best Results
+
+The EfficientNet + Attention U-Net achieved the highest validation performance:
+
+* Dice Score: 0.8256
+* IoU Score: 0.7575
+
+Attention mechanisms improved feature refinement and tumor boundary delineation.
+
+---
+
+## EfficientNet Provided the Best Accuracy-to-Speed Trade-Off
+
+Although the Attention model achieved the highest segmentation accuracy, the EfficientNet U-Net delivered competitive performance with lower computational overhead and faster convergence.
+
+This makes EfficientNet U-Net attractive for practical deployment scenarios.
+
+---
+
+## Tumor-Aware Sampling Improved Learning Efficiency
+
+Focusing training patches around tumor regions reduced background dominance and improved segmentation performance.
 
 ---
 
@@ -164,7 +246,7 @@ Further investigation is ongoing.
 * NiBabel
 * NumPy
 
-## Data Science
+## Data Processing
 
 * Pandas
 * Scikit-Learn
@@ -185,14 +267,24 @@ Brain-Tumor-Segmentation-BraTS2020/
 │   ├── efficientnet_unet.ipynb
 │   └── attention_unet.ipynb
 │
-├── models/
-│   ├── unet3d_brats2020.pth
-│   └── effnet_unet3d_brats2020.pth
-│
 ├── results/
-│   ├── training_logs/
-│   ├── evaluation_metrics/
-│   └── sample_predictions/
+│   ├── training_curves/
+│   │   ├── dice_comparison.png
+│   │   ├── iou_comparison.png
+│   │   └── loss_comparison.png
+│   │
+│   ├── baseline_predictions.png
+│   ├── efficientnet_predictions.png
+│   ├── attention_predictions.png
+│   ├── model_comparison.png
+│   └── metrics/
+│       └── model_comparison.csv
+│
+├── src/
+│   ├── datasets/
+│   ├── models/
+│   ├── training/
+│   └── evaluation/
 │
 ├── README.md
 ├── requirements.txt
@@ -206,10 +298,11 @@ Brain-Tumor-Segmentation-BraTS2020/
 * Whole Tumor (WT) Evaluation
 * Tumor Core (TC) Evaluation
 * Enhancing Tumor (ET) Evaluation
-* Advanced Data Augmentation
 * Learning Rate Scheduling
-* CBAM and Attention Gate Experiments
-* Full BraTS Benchmark Comparison
+* CBAM Attention Modules
+* Transformer-Based Segmentation Models
+* SwinUNETR Experiments
+* Full BraTS Benchmark Evaluation
 
 ---
 
@@ -218,7 +311,31 @@ Brain-Tumor-Segmentation-BraTS2020/
 **Shreyansh Shakya**
 
 Computer Science Engineering Student
-Research Interests: Medical AI, Deep Learning, Computer Vision, Agentic AI Systems
+
+### Research Interests
+
+* Medical AI
+* Deep Learning
+* Computer Vision
+* Healthcare Analytics
+* Agentic AI Systems
 
 GitHub: https://github.com/ShreyanshShakya
+
 LinkedIn: https://www.linkedin.com/in/shreyansh-shakya-3b019022a
+
+---
+
+## Citation
+
+If you find this work useful, please consider starring the repository and citing the project.
+
+```bibtex
+@misc{shakya2025brainsegmentation,
+  author = {Shreyansh Shakya},
+  title = {Brain Tumor Segmentation using 3D U-Net Architectures},
+  year = {2025},
+  publisher = {GitHub},
+  url = {https://github.com/ShreyanshShakya}
+}
+```
